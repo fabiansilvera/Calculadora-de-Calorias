@@ -1,14 +1,25 @@
-import { useState } from "react"
-import type {ChangeEvent} from "react"
+import { useState} from "react"
+import type {ChangeEvent, Dispatch, FormEvent} from "react"
+import { v4 as uuidv4 } from "uuid"
 import type { Activity } from "../types"
 import { categories } from "../data/categories"
+import type { ActivityActions } from "../reducers/activityReducer"
 
-export default function Form() {
-    const [activity, setActivity] = useState<Activity>({
+
+type FormProps = {
+    dispatch : Dispatch<ActivityActions>
+}
+
+const initialState : Activity = {
+        id: uuidv4(),
         category: 1,
         name: '',
         calories: 0
-    })
+    }
+
+export default function Form({dispatch} : FormProps) {
+    // Inicializa las activities vacio
+    const [activity, setActivity] = useState<Activity>(initialState)
     
     const handleChange = (e : ChangeEvent<HTMLSelectElement> | ChangeEvent<HTMLInputElement>) => {
         const isNumberField = ['category', 'calories'].includes(e.target.id)
@@ -24,8 +35,19 @@ export default function Form() {
         return name.trim() != '' && calories > 0
     }
 
+    const handleSubmit = (e : FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+
+        dispatch({type: "save-activity" , payload: {newActivity: activity}} )
+        // Limpia el state
+        setActivity({
+            ...initialState,
+            id: uuidv4(),
+        })
+    }
+
     return (
-        <form className="space-y-5 bg-white shadow p-10 rounded-lg">
+        <form className="space-y-5 bg-white shadow p-10 rounded-lg" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 gap-3">
                 <label htmlFor="category"  className="font-bold">Categoria: </label>
                 <select className="border border-slate-300 p-2 rounded-lg w-full bg-white" id="category" value={activity.category} onChange={handleChange}>
